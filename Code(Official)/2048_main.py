@@ -7,12 +7,14 @@ class Map:
     self.size = 4 # 4X4 형식
     self.score = 0 # 점수
     self.map = [[0 for i in range(4)] for i in range(4)] # 맵
+    self.post_map = []    #이전의 맵
+    self.post_score = 0   #이전의 점수
     self.add1() # 초기 두개의 블럭 생성
     self.add1()
   
   def add1(self): # 초기블럭 생성(c 블럭만)
     global scorecompare_key
-    scorecompare_key = True
+    scorecompare_key = True     #점수비교함수 key 활성화
     while True:
       px = random.randint(0, 3)
       py = random.randint(0, 3)
@@ -57,6 +59,11 @@ class Map:
   def rotate90(self):
     self.map = [[self.map[c][r] for c in range(self.size)] for r in reversed(range(self.size))]
   
+  def undo(self):
+    self.map = self.post_map	  #맵 덮어쓰기
+    self.score = self.post_score  #점수 덮어쓰기
+    self.post_map = []	          #post_map 비우기
+    
   #       
   def over(self): # 게임 오버 판별
     for r in range(self.size):
@@ -74,6 +81,10 @@ class Map:
     return True
     
   def moveUp(self):
+    self.rotate90()
+    self.rotate90()
+    self.rotate90()
+    self.rotate90()
     if self.adjust():
       self.add()
   
@@ -367,6 +378,7 @@ while running:
       display_game_screen()
       map.create_block() # 블럭 두개 생성
       if event.type == pygame.KEYDOWN: # 키보드를 눌렀을 때
+        map.post_map = map.map      # 되돌리기를 위한 맵 저장
         if event.key == pygame.K_UP: # up이면
           map.moveUp()
 
@@ -452,7 +464,13 @@ while running:
             if effect:
               button_sound.play()
             option = True
+          elif undo_button.collidepoint(click_pos):     # 언두버튼을 눌렀을 때
+            if map.post_map != []:  # 이전 행동이 저장되어 있을 때
+              if effect:
+                button_sound.play()
+              map.undo()            # 언두 실행
 
+     
   else: # default로 시자화면 출력
     display_start_screen()
 
